@@ -1,0 +1,10 @@
+{
+  "extends": "./node_modules/gts/tsconfig-google.json",
+  "compilerOptions": {
+    "noEmitOnError": false,
+    "importHelpers": true,
+    "outDir": "dist",
+    "rootDir": "src",
+  },
+  "include": ["src/**/*"]
+}
