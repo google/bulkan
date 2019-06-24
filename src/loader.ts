@@ -10,12 +10,13 @@ import {
 import { read } from './format';
 import { resolve } from 'path';
 import { compileJson } from './from-node';
+import { boolean } from '@oclif/parser/lib/flags';
 
-export function register(archive: string): void {
+export function register(archive: string, verbose: boolean): void {
   const bufMap = loadBuffersFromBundle(archive);
   registerLoader({
-    resolve: createResolver(bufMap),
-    compile: createCompiler(bufMap),
+    resolve: createResolver(bufMap, verbose=verbose),
+    compile: createCompiler(bufMap, verbose=verbose),
   });
 }
 
@@ -39,7 +40,7 @@ interface BufMap {
 
 function createResolver(
   bufMap: BufMap,
-  verbose = process.env['BLKN_VERBOSE']
+  verbose: boolean
 ): Resolver {
   // nmr.resolve handles fallback to default behaviour
   const nmr = createNMR(bufMap);
@@ -58,7 +59,7 @@ function createNMR(bufMap: BufMap): NodeModuleResolution {
 
 function createCompiler(
   bufMap: BufMap,
-  verbose = process.env['BLKN_VERBOSE']
+  verbose: boolean
 ): Compiler {
   const compile: Compiler = (module, filename, extension, resolveContext) => {
     if (verbose) console.log('compiling', filename, 'from bundle');

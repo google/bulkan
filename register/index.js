@@ -1,1 +1,1 @@
-require('../dist/loader').register('bundle.blkn');
+require('../dist/loader').register('bundle.blkn', verbose=false);
