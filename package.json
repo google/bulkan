@@ -11,6 +11,7 @@
     "@oclif/config": "^1.13.0",
     "@oclif/plugin-help": "^2.2.0",
     "fast-glob": "^3.0.1",
+    "filesize": "^4.1.2",
     "node-module-resolution": "0.0.3",
     "tslib": "^1.10.0"
   },
@@ -20,6 +21,7 @@
     "@oclif/test": "^1.2.4",
     "@oclif/tslint": "^3.1.1",
     "@types/chai": "^4.1.7",
+    "@types/filesize": "^4.1.0",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.0.10",
     "chai": "^4.2.0",

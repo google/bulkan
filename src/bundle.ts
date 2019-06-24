@@ -1,34 +1,32 @@
 import * as fg from 'fast-glob';
-import { promises } from 'fs';
+import { promises, statSync } from 'fs';
 import { write, read } from './format';
 import * as path from 'path';
+import * as fileSize from 'filesize';
 
 export async function createBundle(
-  filename: string,
+  outfile: string,
   root = process.cwd(),
-  extensions = ['.js', '.json'],
-  loadFromLockfile = true
+  extensions = ['.js', '.json']
 ) {
   let paths: string[] = [];
-  if (loadFromLockfile) {
-    if (!require.main) throw Error("couldn't find main module");
 
-    const lockPath = path.resolve(path.join(root, 'package-lock.json'));
-    const pkgLock = require(lockPath);
-    const dirs = getToplevelDepsFromLockfile(pkgLock)
-      .map(name => `node_modules/${name}/**/*`)
-      .map(dir => extensions.map(i => dir + i))
-      .reduce((acc, val) => acc.concat(val), []);
+  const lockPath = path.resolve(path.join(root, 'package-lock.json'));
+  const dirs = getToplevelDepsFromLockfile(require(lockPath))
+    .map(name => `node_modules/${name}/**/*`)
+    .map(dir => extensions.map(ext => dir + ext))
+    .reduce((acc, val) => acc.concat(val), []);
 
-    paths = paths.concat(await fg(dirs));
-  }
+  paths = paths.concat(await fg(dirs));
 
   if (paths.length === 0) throw new Error('No paths to be bundled');
 
   const bufs = await Promise.all(paths.map(loadBuf));
   const entries = paths.map((p, i) => ({ key: p, data: bufs[i] }));
 
-  write(filename, entries);
+  write(outfile, entries);
+  const size = fileSize(statSync(outfile).size);
+  console.log(`Bundled ${paths.length} files into ${outfile} using ${size}`);
 }
 
 // tslint:disable-next-line:no-any
@@ -40,14 +38,8 @@ function getToplevelDepsFromLockfile(lock: any): string[] {
 }
 
 function loadBuf(path: string): Promise<Buffer> {
-  console.log('Loading', path);
   return promises.stat(path).then(stats => {
     if (stats.isDirectory()) return Buffer.allocUnsafe(0);
     return promises.readFile(path);
   });
-}
-
-function printBundle(filename: string) {
-  const entries = read(filename);
-  console.log(entries);
 }
