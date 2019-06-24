@@ -51,10 +51,3 @@ function printBundle(filename: string) {
   const entries = read(filename);
   console.log(entries);
 }
-
-if (require.main === module) {
-  console.log(process.cwd());
-  createBundle('bundle.blkn').then(() => {
-    printBundle('bundle.blkn');
-  });
-}
