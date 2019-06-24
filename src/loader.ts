@@ -7,16 +7,15 @@ import {
   Compiler,
   Resolver,
 } from 'node-module-resolution/build/src/extend-internal-module';
-import { read } from './format';
 import { resolve } from 'path';
+import { read } from './format';
 import { compileJson } from './from-node';
-import { boolean } from '@oclif/parser/lib/flags';
 
 export function register(archive: string, verbose: boolean): void {
   const bufMap = loadBuffersFromBundle(archive);
   registerLoader({
-    resolve: createResolver(bufMap, verbose=verbose),
-    compile: createCompiler(bufMap, verbose=verbose),
+    resolve: createResolver(bufMap, (verbose = verbose)),
+    compile: createCompiler(bufMap, (verbose = verbose)),
   });
 }
 
@@ -38,10 +37,7 @@ interface BufMap {
   [path: string]: Buffer;
 }
 
-function createResolver(
-  bufMap: BufMap,
-  verbose: boolean
-): Resolver {
+function createResolver(bufMap: BufMap, verbose: boolean): Resolver {
   // nmr.resolve handles fallback to default behaviour
   const nmr = createNMR(bufMap);
   return (filename, parent, isMain, resolveContext) => {
@@ -57,10 +53,7 @@ function createNMR(bufMap: BufMap): NodeModuleResolution {
   );
 }
 
-function createCompiler(
-  bufMap: BufMap,
-  verbose: boolean
-): Compiler {
+function createCompiler(bufMap: BufMap, verbose: boolean): Compiler {
   const compile: Compiler = (module, filename, extension, resolveContext) => {
     if (verbose) console.log('compiling', filename, 'from bundle');
 

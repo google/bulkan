@@ -1,8 +1,8 @@
 import * as fg from 'fast-glob';
-import { promises, statSync } from 'fs';
-import { write, read } from './format';
-import * as path from 'path';
 import * as fileSize from 'filesize';
+import { promises, statSync } from 'fs';
+import * as path from 'path';
+import { write } from './format';
 
 export async function createBundle(
   outfile: string,

@@ -1,12 +1,12 @@
 import * as assert from 'assert';
 import {
+  encodeAll,
   encodedLength,
+  encodeItem,
+  ENCODING,
+  HS,
   parseAll,
   parseItem,
-  encodeItem,
-  encodeAll,
-  HS,
-  ENCODING,
 } from '../src/format';
 
 const hs = HS;
