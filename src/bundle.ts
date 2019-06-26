@@ -3,6 +3,7 @@ import * as fileSize from 'filesize';
 import { promises, statSync } from 'fs';
 import * as path from 'path';
 import { write } from './format';
+import { PackageJson, PackageLock } from './npm';
 
 export async function createBundle(
   outfile: string,
@@ -12,7 +13,7 @@ export async function createBundle(
   let paths: string[] = [];
 
   const lockPath = path.resolve(path.join(root, 'package-lock.json'));
-  const dirs = getToplevelDepsFromLockfile(require(lockPath))
+  const dirs = getPackageLockDeps(require(lockPath))
     .map(name => `node_modules/${name}/**/*`)
     .map(dir => extensions.map(ext => dir + ext))
     .reduce((acc, val) => acc.concat(val), []);
@@ -29,12 +30,22 @@ export async function createBundle(
   console.log(`Bundled ${paths.length} files into ${outfile} using ${size}`);
 }
 
-// tslint:disable-next-line:no-any
-function getToplevelDepsFromLockfile(lock: any): string[] {
-  // TODO: write types for lockfile json?
-  return Object.entries(lock.dependencies) // tslint:disable-next-line:no-any
-    .filter(([name, pkg]) => !(pkg as any).dev)
+export function getPackageLockDeps(
+  lock: PackageLock,
+  { includeDev = false } = {}
+): string[] {
+  return Object.entries(lock.dependencies || {})
+    .filter(([name, pkg]) => includeDev || !pkg.dev)
     .map(([name, pkg]) => name);
+}
+
+export function getPackageJsonDeps(
+  pkgJson: PackageJson,
+  { includeDev = false } = {}
+): string[] {
+  let deps = pkgJson.dependencies || {};
+  if (includeDev) deps = { ...(pkgJson.devDependencies || {}), ...deps };
+  return Object.keys(deps);
 }
 
 function loadBuf(path: string): Promise<Buffer> {
