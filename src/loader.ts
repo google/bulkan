@@ -11,7 +11,10 @@ import { resolve } from 'path';
 import { read } from './format';
 import { compileJson } from './from-node';
 
-export function register(archive: string, verbose: boolean): void {
+export function register(
+  archive: string,
+  verbose = Boolean(process.env['BLKN_VERBOSE'])
+): void {
   const bufMap = loadBuffersFromBundle(archive);
   registerLoader({
     resolve: createResolver(bufMap, (verbose = verbose)),
