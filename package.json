@@ -13,6 +13,7 @@
     "fast-glob": "^3.0.1",
     "filesize": "^4.1.2",
     "node-module-resolution": "0.0.3",
+    "shebang-regex": "^3.0.0",
     "tslib": "^1.10.0"
   },
   "devDependencies": {
@@ -35,7 +36,7 @@
     "typescript": "^3.5.2"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=10.6.0"
   },
   "files": [
     "/bin",

@@ -1,5 +1,10 @@
 import * as assert from 'assert';
-import { getPackageJsonDeps, getPackageLockDeps } from '../src/bundle';
+import * as vm from 'vm';
+import {
+  compileJsModule,
+  getPackageJsonDeps,
+  getPackageLockDeps,
+} from '../src/bundle';
 import { PackageJson, PackageLock } from '../src/npm';
 
 describe('bundle', () => {
@@ -73,6 +78,35 @@ describe('bundle', () => {
       assert.deepStrictEqual(
         getPackageJsonDeps(pkg, { includeDev: true }).sort(),
         expected
+      );
+    });
+  });
+
+  describe(compileJsModule.name, () => {
+    it('should compile the provided js as a module', () => {
+      const path = '/a/file.js';
+      const content = `exports.out = 5;`;
+      const wrapped = require('module').wrap(content);
+      const compiled = compileJsModule(path, content);
+      const script = new vm.Script(wrapped, {
+        filename: path,
+        cachedData: compiled,
+      }) as any;
+      const res = script.runInThisContext();
+      const exp = {out: 0};
+      res(exp);
+      assert.strictEqual(script.cachedDataRejected, false);
+      assert.strictEqual(exp.out, 5);
+    });
+    it('should strip the shebang from the input content', () => {
+      const path = '/a/file.js';
+      const withoutShebang = `
+        console.log('hello');`;
+      const withShebang = `#!/usr/bin/env node
+        console.log('hello');`;
+      assert.deepStrictEqual(
+        compileJsModule(path, withShebang),
+        compileJsModule(path, withoutShebang)
       );
     });
   });
