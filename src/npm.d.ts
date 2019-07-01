@@ -1,4 +1,3 @@
-
 // this is in the tarball or the project. it really could have anything in it.
 export interface PackageJson {
   name: string;
@@ -25,9 +24,9 @@ export interface PackageJson {
   bundledDependencies?: Dependencies;
   engines?: ObjectOfStrings;
   files?: string[];
-  bin?: {[key: string]: string};
-  man?: string|string[];
-  directories?:Directories;
+  bin?: { [key: string]: string };
+  man?: string | string[];
+  directories?: Directories;
   /**
    * types for the package. unofficial but defacto for typescript.
    */
@@ -39,7 +38,7 @@ export interface PackageJson {
   /**
    * npm config values for publish time. like setting an alternate registry
    */
-  publishConfig?:ObjectOfStrings;
+  publishConfig?: ObjectOfStrings;
 }
 
 // this is what you get from the npm api.
@@ -47,20 +46,20 @@ export interface Packument {
   name: string;
   readme?: string;
   description?: string;
-  'dist-tags': {latest?: string}&ObjectOfStrings;
-  versions: {[key: string]: PackumentVersion};
+  'dist-tags': { latest?: string } & ObjectOfStrings;
+  versions: { [key: string]: PackumentVersion };
   maintainers: Maintainer[];
-  time: {modified: string, created: string, [key: string]: string};
+  time: { modified: string; created: string; [key: string]: string };
   homepage?: string;
   keywords?: string[];
   repository?: Repository;
   author?: Maintainer;
-  bugs?: {url: string};
+  bugs?: { url: string };
   license: string;
   // left out users (stars) deprecated, and attachments (does nothing)
   readmeFilename?: string;
 }
-  
+
 // https://docs.npmjs.com/files/package-lock.json
 export interface PackageLock {
   name: string;
@@ -69,22 +68,23 @@ export interface PackageLock {
   packageIntegrity?: string;
   preserveSymlinks?: boolean;
   requires?: boolean;
-  dependencies?: {[moduleName: string]: LockDependency};
+  dependencies?: { [moduleName: string]: LockDependency };
 }
 
-export type Repository = {
-  type?: string,
-  url?: string
-}|string;
+export type Repository =
+  | {
+      type?: string;
+      url?: string;
+    }
+  | string;
 
-interface Directories{
+interface Directories {
   bin?: string;
   lib?: string;
   man?: string;
   doc?: string;
   test?: string;
 }
-
 
 // this is what you get for each version in the npm api response.
 export interface PackumentVersion extends PackageJson {
@@ -104,33 +104,33 @@ export interface PackumentVersion extends PackageJson {
 
 /**
  * abbreviated metadata format (aka corgi)
- *  
+ *
  * https://github.com/npm/registry/blob/master/docs/responses/package-metadata.md#abbreviated-metadata-format
  * returned from registry requests with accept header values conianing
  * `application/vnd.npm.install-v1+json`
  */
-export interface Manifest{
-  name:string;
-  modified:string;
-  'dist-tags':ObjectOfStrings;
-  versions:{[version:string]:ManifestVersion}
+export interface Manifest {
+  name: string;
+  modified: string;
+  'dist-tags': ObjectOfStrings;
+  versions: { [version: string]: ManifestVersion };
 }
 
-export interface ManifestVersion{
-  name:string;
-  version:string;
-  dependencies?:ObjectOfStrings;
-  optionalDependencies?:ObjectOfStrings;
-  devDependencies?:ObjectOfStrings;
-  bundleDependencies?:ObjectOfStrings;
-  bundledDependencies?:ObjectOfStrings;
-  peerDependencies?:ObjectOfStrings;
-  bin?:ObjectOfStrings;
-  _hasShrinkwrap?:boolean;
-  directories?:Directories;
-  dist:Dist;
-  engines:ObjectOfStrings;
-  deprecated?:string;
+export interface ManifestVersion {
+  name: string;
+  version: string;
+  dependencies?: ObjectOfStrings;
+  optionalDependencies?: ObjectOfStrings;
+  devDependencies?: ObjectOfStrings;
+  bundleDependencies?: ObjectOfStrings;
+  bundledDependencies?: ObjectOfStrings;
+  peerDependencies?: ObjectOfStrings;
+  bin?: ObjectOfStrings;
+  _hasShrinkwrap?: boolean;
+  directories?: Directories;
+  dist: Dist;
+  engines: ObjectOfStrings;
+  deprecated?: string;
 }
 
 /**
@@ -160,14 +160,14 @@ export interface Dist {
    */
   unpackedSize?: number;
   /**
-   * pgp signed package signature 
+   * pgp signed package signature
    * https://blog.npmjs.org/post/172999548390/new-pgp-machinery
    */
   'npm-signature'?: string;
 }
 
 // https://docs.npmjs.com/misc/scripts
-export type NpmScripts = ObjectOfStrings&{
+export type NpmScripts = ObjectOfStrings & {
   test?: string;
   pretest?: string;
   posttest?: string;
@@ -196,7 +196,6 @@ export type NpmScripts = ObjectOfStrings&{
   postshrinkwrap?: string;
 };
 
-
 export interface LockDependency {
   version: string;
   integrity?: string;
@@ -204,16 +203,17 @@ export interface LockDependency {
   bundled?: boolean;
   dev?: boolean;
   optional?: boolean;
-  requires?: {[moduleName: string]: string};
-  dependencies?: {[moduleName: string]: LockDependency};
+  requires?: { [moduleName: string]: string };
+  dependencies?: { [moduleName: string]: LockDependency };
 }
 
-export type Maintainer = {
-  name?: string;
-  email?: string;
-  url?: string;
-}|string;
-
+export type Maintainer =
+  | {
+      name?: string;
+      email?: string;
+      url?: string;
+    }
+  | string;
 
 interface ObjectOfStrings {
   [key: string]: string;

@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync } from 'fs';
 export const HS = 6;
 export const ENCODING = 'utf8';
 
-interface Entry {
+export interface Entry {
   key: string;
   data: Buffer;
 }

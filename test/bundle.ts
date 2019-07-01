@@ -4,6 +4,7 @@ import {
   compileJsModule,
   getPackageJsonDeps,
   getPackageLockDeps,
+  nodeModulesGlobs,
 } from '../src/bundle';
 import { PackageJson, PackageLock } from '../src/npm';
 
@@ -82,6 +83,21 @@ describe('bundle', () => {
     });
   });
 
+  describe(nodeModulesGlobs.name, () => {
+    it('should return an empty list from an empty input', () => {
+      assert.deepStrictEqual(nodeModulesGlobs([]), []);
+    });
+    it('should return the relative node_modules globs for the given deps', () => {
+      const deps = ['dep-a', '@types/dep-b', 'dep-c'];
+      const expected = [
+        './node_modules/dep-a/**/*',
+        './node_modules/@types/dep-b/**/*',
+        './node_modules/dep-c/**/*',
+      ];
+      assert.deepStrictEqual(nodeModulesGlobs(deps), expected);
+    });
+  });
+
   describe(compileJsModule.name, () => {
     it('should compile the provided js as a module', () => {
       const path = '/a/file.js';
@@ -93,7 +109,7 @@ describe('bundle', () => {
         cachedData: compiled,
       }) as any;
       const res = script.runInThisContext();
-      const exp = {out: 0};
+      const exp = { out: 0 };
       res(exp);
       assert.strictEqual(script.cachedDataRejected, false);
       assert.strictEqual(exp.out, 5);
