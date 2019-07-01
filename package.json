@@ -54,12 +54,17 @@
       "source-map-support/register"
     ],
     "extension": "ts",
+    "spec": [
+      "test/**/*.ts"
+    ],
     "reporter": "spec",
     "recursive": true
   },
   "nyc": {
     "extends": "@istanbuljs/nyc-config-typescript",
-    "all": true
+    "include": [
+      "src/**/*.ts"
+    ]
   },
   "oclif": {
     "commands": "./dist/commands",
