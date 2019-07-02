@@ -99,6 +99,6 @@ const loadBufferAndCompileCache: Handler = path => {
         key: path + '.cjs',
         data: compileJsModule(path, buf.toString('utf8')),
       }))
-      .catch(e => Promise.reject({ path, msg: e })),
+      .catch(e => Promise.reject({ path, msg: `Couldn't compile js: ${e}` })),
   ];
 };

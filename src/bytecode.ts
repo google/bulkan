@@ -5,7 +5,8 @@ export function compileJsModule(path: string, content: string): Buffer {
   content = stripShebang(content);
   const wrapped = require('module').wrap(content);
   const script = new Script(wrapped, {
-    filename: path, // tslint:disable-next-line: no-any
+    filename: path,
+    displayErrors: true, // tslint:disable-next-line: no-any
   }) as any; // .createCachedData isn't part of the types yet...
   // TODO: should I execute the script before collecting the cache?
   return script.createCachedData();
@@ -20,6 +21,7 @@ export function loadCompiledJs(
   const wrapped = require('module').wrap(source);
   const script = new Script(wrapped, {
     filename: path,
+    displayErrors: true,
     cachedData: compiled,
   });
   return script;
