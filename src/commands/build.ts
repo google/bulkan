@@ -3,11 +3,8 @@ import * as fg from 'fast-glob';
 import * as fileSize from 'filesize';
 import { promises, statSync } from 'fs';
 import * as Path from 'path';
-import {
-  compileJsModule,
-  getPackageJsonDeps,
-  nodeModulesGlobs,
-} from '../bundle';
+import { getPackageJsonDeps, nodeModulesGlobs } from '../bundle';
+import { compileJsModule } from '../bytecode';
 import { Entry, write } from '../format';
 
 // tslint:disable-next-line: no-default-export
