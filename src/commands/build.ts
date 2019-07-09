@@ -19,7 +19,11 @@ import * as fg from 'fast-glob';
 import * as fileSize from 'filesize';
 import { promises, statSync } from 'fs';
 import * as Path from 'path';
-import { getPackageJsonDeps, nodeModulesGlobs } from '../bundle';
+import {
+  getPackageJsonDeps,
+  getPackageLockDeps,
+  nodeModulesGlobs,
+} from '../bundle';
 import { compileJsModule } from '../bytecode';
 import { Entry, write } from '../format';
 
@@ -54,7 +58,11 @@ export default class Build extends Command {
 
     this.log('Collecting paths');
     const pkgPath = Path.resolve(Path.join(args.cwd, 'package.json'));
-    const globs = nodeModulesGlobs(getPackageJsonDeps(require(pkgPath)));
+    const pkgLockPath = Path.resolve(Path.join(args.cwd, 'package-lock.json'));
+    const pkgDeps = getPackageJsonDeps(require(pkgPath));
+    const pkgLockDeps = getPackageLockDeps(require(pkgLockPath));
+    const globs = nodeModulesGlobs([...new Set([...pkgDeps, ...pkgLockDeps])]);
+
     const paths = await fg(globs);
     this.log(`Found ${paths.length} paths`);
 
