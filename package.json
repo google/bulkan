@@ -5,7 +5,7 @@
   "bin": {
     "bulkan": "./bin/run"
   },
-  "bugs": "https://github.com/A-lxe/bulkan/issues",
+  "bugs": "https://github.com/google/bulkan/issues",
   "dependencies": {
     "@oclif/command": "^1.5.15",
     "@oclif/config": "^1.13.0",
@@ -44,7 +44,7 @@
     "npm-shrinkwrap.json",
     "oclif.manifest.json"
   ],
-  "homepage": "https://github.com/A-lxe/bulkan",
+  "homepage": "https://github.com/google/bulkan",
   "keywords": [],
   "license": "Apache-2.0",
   "main": "dist/index.js",
@@ -73,7 +73,7 @@
       "@oclif/plugin-help"
     ]
   },
-  "repository": "A-lxe/bulkan",
+  "repository": "google/bulkan",
   "scripts": {
     "check": "gts check",
     "compile": "tsc",
