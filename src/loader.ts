@@ -27,22 +27,44 @@ import * as Path from 'path';
 import { loadCompiledJs } from './bytecode';
 import { read } from './format';
 import { compileJson, makeRequireFunction } from './third_party/from-node';
+import * as perfTrace from './third_party/perf-trace';
 
 export function register(
   archive: string,
-  verbose = Boolean(process.env['BLKN_VERBOSE'])
+  verbose = Boolean(process.env['BLKN_VERBOSE']),
+  trace = true
 ): void {
-  const bufMap = loadBuffersFromBundle(archive);
+  let bufMap;
+  if (trace) {
+    process.on('exit', () => perfTrace.write('./blkn-trace.1.log'));
+    perfTrace.wrap('loading bundle', () => {
+      bufMap = loadBuffersFromBundle(archive);
+    });
+  } else {
+    bufMap = loadBuffersFromBundle(archive);
+  }
   registerLoader({
-    resolve: createResolver(bufMap, (verbose = verbose)),
-    compile: createCompiler(bufMap, (verbose = verbose)),
+    resolve: createResolver(
+      bufMap as BufMap,
+      (verbose = verbose),
+      (trace = trace)
+    ),
+    compile: createCompiler(
+      bufMap as BufMap,
+      (verbose = verbose),
+      (trace = trace)
+    ),
   });
 }
 
 function loadBuffersFromBundle(path: string): BufMap {
+  perfTrace.enter('read bundle');
   const entries = read(path);
+  perfTrace.exit('read bundle');
+  perfTrace.enter('build bufmap');
   const bufMap: BufMap = {};
   entries.forEach(({ key, data }) => (bufMap[Path.resolve(key)] = data));
+  perfTrace.exit('build bufmap');
   return bufMap;
 }
 
@@ -57,14 +79,36 @@ interface BufMap {
   [path: string]: Buffer;
 }
 
-function createResolver(bufMap: BufMap, verbose: boolean): Resolver {
+function createResolver(
+  bufMap: BufMap,
+  verbose: boolean,
+  trace: boolean
+): Resolver {
   // nmr.resolve handles fallback to default behaviour
-  const nmr = createNMR(bufMap);
-  return (filename, parent, isMain, resolveContext) => {
+  let nmr: NodeModuleResolution;
+  if (trace) {
+    perfTrace.wrap('initialize nmr', () => {
+      nmr = createNMR(bufMap);
+    });
+  } else {
+    nmr = createNMR(bufMap);
+  }
+  let resolver: Resolver = (filename, parent, isMain, resolveContext) => {
     const res = nmr.resolve(filename, parent, isMain);
     if (verbose) console.log('resolved', filename, 'to', res);
     return res;
   };
+  if (trace) {
+    const old = resolver;
+    resolver = ((filename, ...args) => {
+      let resolved: string | false = false;
+      perfTrace.wrap(`blkn resolve`, () => {
+        resolved = old(filename, ...args);
+      });
+      return resolved;
+    }) as Resolver;
+  }
+  return resolver;
 }
 
 function createNMR(bufMap: BufMap): NodeModuleResolution {
@@ -73,15 +117,21 @@ function createNMR(bufMap: BufMap): NodeModuleResolution {
   );
 }
 
-function createCompiler(bufMap: BufMap, verbose: boolean): Compiler {
-  const compile: Compiler = (module, filename, extension, resolveContext) => {
+function createCompiler(
+  bufMap: BufMap,
+  verbose: boolean,
+  trace: boolean
+): Compiler {
+  let compile: Compiler = (module, filename, extension, resolveContext) => {
     if (verbose) console.log('compiling', filename, 'from bundle');
 
     const mod = module as Parent;
     const content = bufMap[filename].toString('utf8');
 
     if (extension === '.json') {
-      compileJson(mod, content, filename);
+      perfTrace.wrap('compile json', () => {
+        compileJson(mod, content, filename);
+      });
     } else if (extension === '.js') {
       if (!module || !mod._compile) {
         throw Error(`Unable to compile ${filename} within a module`);
@@ -97,10 +147,20 @@ function createCompiler(bufMap: BufMap, verbose: boolean): Compiler {
         );
       } else {
         if (verbose) console.log(`\tcompiling from bundled javascript`);
-        mod._compile(content, filename);
+        perfTrace.wrap('compile js', () => {
+          mod._compile && mod._compile(content, filename);
+        });
       }
     }
   };
+  if (trace) {
+    const old = compile;
+    compile = ((module, filename, ...args) => {
+      perfTrace.wrap(`blkn compile`, () => {
+        old(module, filename, ...args);
+      });
+    }) as Compiler;
+  }
 
   return compile;
 }
@@ -117,17 +177,20 @@ function moduleBoundCompileFromBytecode(
   filename: string,
   byteCode: Buffer
 ) {
+  perfTrace.enter('load bytecode');
   const compiledWrapper = loadCompiledJs(
     filename,
     source,
     byteCode
   ).runInThisContext();
+  perfTrace.exit('load bytecode');
 
   const dirname = Path.dirname(filename);
   const require = makeRequireFunction(this);
   const exports = this.exports;
   const thisValue = exports;
   const module = this;
+  perfTrace.enter('call bytecode');
   const result = compiledWrapper.call(
     thisValue,
     exports,
@@ -136,5 +199,6 @@ function moduleBoundCompileFromBytecode(
     filename,
     dirname
   );
+  perfTrace.exit('call bytecode');
   return result;
 }
