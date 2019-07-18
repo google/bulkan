@@ -3,7 +3,7 @@
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/bulkan.svg)](https://npmjs.org/package/bulkan)
 [![Downloads/week](https://img.shields.io/npm/dw/bulkan.svg)](https://npmjs.org/package/bulkan)
-[![License](https://img.shields.io/npm/l/bulkan.svg)](https://github.com/A-lxe/bulkan/blob/master/package.json)
+[![License](https://img.shields.io/npm/l/bulkan.svg)](https://github.com/google/bulkan/blob/master/package.json)
 
 Bulkan is a dependency bundler/loader for node focused on working anywhere and loading fast.
 
@@ -17,7 +17,7 @@ Bulkan is a dependency bundler/loader for node focused on working anywhere and l
 # Usage
 
 ```sh
-npm i bulkan # NOTE: This project isn't public yet, so that probably won't work
+npm i bulkan
 ```
 
 To build a bundle from within your project root:
@@ -31,8 +31,7 @@ To use bulkan as a run-time loader from the generated `bundle.blkn`:
 
 ```sh
 node -r bulkan index.js # OR
-node -r bulkan/register index.js # OR
-# For verbose output of dependency resolution+compiling:
+node -r bulkan/register index.js # OR for verbose output of dependency resolution+compiling:
 node -r bulkan/register/verbose index.js
 ```
 
@@ -97,3 +96,8 @@ OPTIONS
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
 
 <!-- commandsstop -->
+
+# Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to this project.
+
+> This is not an official Google product.
