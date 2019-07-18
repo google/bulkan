@@ -8,10 +8,10 @@
 Bulkan is a dependency bundler/loader for node focused on working anywhere and loading fast.
 
 <!-- toc -->
-
-- [Usage](#usage)
-- [Commands](#commands)
-
+* [bulkan](#bulkan)
+* [Usage](#usage)
+* [Commands](#commands)
+* [Contributing](#contributing)
 <!-- tocstop -->
 
 # Usage
@@ -38,45 +38,43 @@ node -r bulkan/register/verbose index.js
 For more information on the included CLI, read on!
 
 <!-- usage -->
-
 ```sh-session
 $ npm install -g bulkan
 $ bulkan COMMAND
 running command...
 $ bulkan (-v|--version|version)
-bulkan/0.0.0 linux-x64 node-v12.2.0
+bulkan/0.0.1 linux-x64 node-v12.2.0
 $ bulkan --help [COMMAND]
 USAGE
   $ bulkan COMMAND
 ...
 ```
-
 <!-- usagestop -->
 
 # Commands
 
 <!-- commands -->
+* [`bulkan build [CWD]`](#bulkan-build-cwd)
+* [`bulkan help [COMMAND]`](#bulkan-help-command)
 
-- [`bulkan build [ROOT]`](#bulkan-build-root)
-- [`bulkan help [COMMAND]`](#bulkan-help-command)
-
-## `bulkan build [ROOT]`
+## `bulkan build [CWD]`
 
 build a bundle
 
 ```
 USAGE
-  $ bulkan build [ROOT]
+  $ bulkan build [CWD]
 
 OPTIONS
+  -C, --no_compile       don't compile javascript files
   -h, --help             show CLI help
-  -o, --outfile=outfile  [default: bundle.blkn] Output file for the generated bundle.
+  -o, --outfile=outfile  [default: bundle.blkn] output file for the generated bundle.
 
 EXAMPLE
   $ bulkan build
 ```
 
-_See code: [dist/commands/build.ts](https://github.com/A-lxe/bulkan/blob/v0.0.0/dist/commands/build.ts)_
+_See code: [dist/commands/build.ts](https://github.com/google/bulkan/blob/v0.0.1/dist/commands/build.ts)_
 
 ## `bulkan help [COMMAND]`
 
@@ -94,7 +92,6 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
-
 <!-- commandsstop -->
 
 # Contributing
