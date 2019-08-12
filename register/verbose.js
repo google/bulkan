@@ -14,4 +14,5 @@
  * limitations under the License.
  */
 
-require('../dist/loader').register('bundle.blkn', (verbose = true));
+process.env.DEBUG = '*';
+require('../dist/loader').register('bundle.blkn');

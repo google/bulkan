@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import * as Debugger from 'debug';
 import {
   NodeModuleResolution,
   Parent as NMRParent,
@@ -28,14 +29,13 @@ import { loadCompiledJs } from './bytecode';
 import { read } from './format';
 import { compileJson, makeRequireFunction } from './third_party/from-node';
 
-export function register(
-  archive: string,
-  verbose = Boolean(process.env['BLKN_VERBOSE'])
-): void {
+const debug = Debugger('bulkan:loader');
+
+export function register(archive: string): void {
   const bufMap = loadBuffersFromBundle(archive);
   registerLoader({
-    resolve: createResolver(bufMap, (verbose = verbose)),
-    compile: createCompiler(bufMap, (verbose = verbose)),
+    resolve: createResolver(bufMap),
+    compile: createCompiler(bufMap),
   });
 }
 
@@ -57,12 +57,12 @@ interface BufMap {
   [path: string]: Buffer;
 }
 
-function createResolver(bufMap: BufMap, verbose: boolean): Resolver {
+function createResolver(bufMap: BufMap): Resolver {
   // nmr.resolve handles fallback to default behaviour
   const nmr = createNMR(bufMap);
   return (filename, parent, isMain, resolveContext) => {
     const res = nmr.resolve(filename, parent, isMain);
-    if (verbose) console.log('resolved', filename, 'to', res);
+    debug('resolved', filename, 'to', res);
     return res;
   };
 }
@@ -73,9 +73,9 @@ function createNMR(bufMap: BufMap): NodeModuleResolution {
   );
 }
 
-function createCompiler(bufMap: BufMap, verbose: boolean): Compiler {
+function createCompiler(bufMap: BufMap): Compiler {
   const compile: Compiler = (module, filename, extension, resolveContext) => {
-    if (verbose) console.log('compiling', filename, 'from bundle');
+    debug('compiling', filename, 'from bundle');
 
     const mod = module as Parent;
     const content = bufMap[filename].toString('utf8');
@@ -89,14 +89,14 @@ function createCompiler(bufMap: BufMap, verbose: boolean): Compiler {
 
       const precompiledPath = filename + '.cjs';
       if (precompiledPath in bufMap) {
-        if (verbose) console.log(`\tcompiling from bundled bytecode`);
+        debug(`\tcompiling from bundled bytecode`);
         moduleBoundCompileFromBytecode.bind(mod)(
           bufMap[filename].toString('utf8'),
           filename,
           bufMap[precompiledPath]
         );
       } else {
-        if (verbose) console.log(`\tcompiling from bundled javascript`);
+        debug(`\tcompiling from bundled javascript`);
         mod._compile(content, filename);
       }
     }
