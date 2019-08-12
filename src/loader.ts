@@ -84,7 +84,7 @@ function createCompiler(bufMap: BufMap): Compiler {
       compileJson(mod, content, filename);
     } else if (extension === '.js') {
       if (!module || !mod._compile) {
-        throw Error(`Unable to compile ${filename} within a module`);
+        throw new Error(`Unable to compile ${filename} within a module`);
       }
 
       const precompiledPath = filename + '.v8b';
