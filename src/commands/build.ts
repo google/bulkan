@@ -67,14 +67,9 @@ export default class Build extends Command {
     this.log(`Found ${paths.length} paths`);
 
     this.log(`Preparing buffers`);
-    const entryPs = ([] as Array<Promise<Entry>>)
-      .concat(
-        ...paths.map((path: string) => {
-          const ext = extname(path);
-          if (ext in handlers) return handlers[ext](path);
-          return [];
-        })
-      )
+    const entryPs = paths
+      .filter(path => extname(path) in handlers)
+      .flatMap(path => handlers[extname(path)](path))
       .map(e =>
         e.catch(err => {
           this.log(`Failed to load ${err.path}: ${err.msg}`);

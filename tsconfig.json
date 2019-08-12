@@ -5,6 +5,9 @@
     "importHelpers": true,
     "outDir": "dist",
     "rootDir": "src",
+    "lib": [
+      "esnext",
+    ]
   },
   "include": ["src/**/*"]
 }
