@@ -17,7 +17,7 @@
 import { Command, flags } from '@oclif/command';
 import * as fg from 'fast-glob';
 import * as fileSize from 'filesize';
-import { promises, statSync } from 'fs';
+import { promises as fsPromises, statSync } from 'fs';
 import { extname, join, resolve } from 'path';
 import {
   getPackageJsonDeps,
@@ -92,7 +92,7 @@ type Handler = (path: string) => Array<Promise<Entry>>;
 
 const loadBuffer: Handler = path => {
   return [
-    promises
+    fsPromises
       .readFile(path)
       .then(buf => ({ key: path, data: buf }))
       .catch(e => Promise.reject({ path, msg: e })),
@@ -108,7 +108,7 @@ const loadEmptyBuffer: Handler = path => {
 };
 
 const loadBufferAndCompileCache: Handler = path => {
-  const readFile = promises.readFile(path);
+  const readFile = fsPromises.readFile(path);
   return [
     readFile
       .then(buf => ({ key: path, data: buf }))
