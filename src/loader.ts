@@ -87,7 +87,7 @@ function createCompiler(bufMap: BufMap): Compiler {
         throw Error(`Unable to compile ${filename} within a module`);
       }
 
-      const precompiledPath = filename + '.cjs';
+      const precompiledPath = filename + '.v8b';
       if (precompiledPath in bufMap) {
         debug(`\tcompiling from bundled bytecode`);
         moduleBoundCompileFromBytecode.bind(mod)(
