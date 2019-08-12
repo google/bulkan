@@ -18,7 +18,7 @@ import { Command, flags } from '@oclif/command';
 import * as fg from 'fast-glob';
 import * as fileSize from 'filesize';
 import { promises, statSync } from 'fs';
-import * as Path from 'path';
+import { extname, join, resolve } from 'path';
 import {
   getPackageJsonDeps,
   getPackageLockDeps,
@@ -57,8 +57,8 @@ export default class Build extends Command {
     if (flags.no_compile) handlers['.js'] = loadBuffer;
 
     this.log('Collecting paths');
-    const pkgPath = Path.resolve(Path.join(args.cwd, 'package.json'));
-    const pkgLockPath = Path.resolve(Path.join(args.cwd, 'package-lock.json'));
+    const pkgPath = resolve(join(args.cwd, 'package.json'));
+    const pkgLockPath = resolve(join(args.cwd, 'package-lock.json'));
     const pkgDeps = getPackageJsonDeps(require(pkgPath));
     const pkgLockDeps = getPackageLockDeps(require(pkgLockPath));
     const globs = nodeModulesGlobs([...new Set([...pkgDeps, ...pkgLockDeps])]);
@@ -70,7 +70,7 @@ export default class Build extends Command {
     const entryPs = ([] as Array<Promise<Entry>>)
       .concat(
         ...paths.map((path: string) => {
-          const ext = Path.extname(path);
+          const ext = extname(path);
           if (ext in handlers) return handlers[ext](path);
           return [];
         })
