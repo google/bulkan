@@ -31,6 +31,17 @@ import { compileJson, makeRequireFunction } from './third_party/from-node';
 
 const debug = Debugger('bulkan:loader');
 
+export interface Parent extends NMRParent {
+  // tslint:disable:no-any
+  exports?: any;
+  _compile?: (content: string, filename: string) => any;
+  // tslint:enable:no-any
+}
+
+interface BufMap {
+  [path: string]: Buffer;
+}
+
 export function register(archive: string): void {
   const bufMap = loadBuffersFromBundle(archive);
   registerLoader({
@@ -44,17 +55,6 @@ function loadBuffersFromBundle(path: string): BufMap {
   const bufMap: BufMap = {};
   entries.forEach(({ key, data }) => (bufMap[Path.resolve(key)] = data));
   return bufMap;
-}
-
-export interface Parent extends NMRParent {
-  // tslint:disable:no-any
-  exports?: any;
-  _compile?: (content: string, filename: string) => any;
-  // tslint:enable:no-any
-}
-
-interface BufMap {
-  [path: string]: Buffer;
 }
 
 function createResolver(bufMap: BufMap): Resolver {
