@@ -19,6 +19,7 @@ import {
   NodeModuleResolution,
   Parent as NMRParent,
   registerLoader,
+  FileMap,
 } from 'node-module-resolution';
 import {
   Compiler,
@@ -68,9 +69,13 @@ function createResolver(bufMap: BufMap): Resolver {
 }
 
 function createNMR(bufMap: BufMap): NodeModuleResolution {
-  return new NodeModuleResolution(
-    new Map(Object.entries(bufMap).map(([k, v]) => [k, { getData: () => v }]))
-  );
+  // Create a light FileMap wrapper around bufMap
+  const fileMap: FileMap = {
+    has: (file: string) => file in bufMap,
+    get: (file: string) => ({ getData: () => bufMap[file] }),
+  };
+
+  return new NodeModuleResolution(fileMap);
 }
 
 function createCompiler(bufMap: BufMap): Compiler {
