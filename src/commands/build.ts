@@ -17,7 +17,7 @@
 import { Command, flags } from '@oclif/command';
 import * as fg from 'fast-glob';
 import * as fileSize from 'filesize';
-import { promises as fsPromises, statSync } from 'fs';
+import { promises as fsPromises, statSync, readFileSync } from 'fs';
 import { extname, join, resolve } from 'path';
 import {
   getPackageJsonDeps,
@@ -57,10 +57,12 @@ export default class Build extends Command {
     if (flags.no_compile) handlers['.js'] = loadBuffer;
 
     this.log('Collecting paths');
+    this.log('Reading package.json');
     const pkgPath = resolve(join(args.cwd, 'package.json'));
+    const pkgDeps = getPackageJsonDeps(readProjectJson(pkgPath));
+    this.log('Reading package-lock.json');
     const pkgLockPath = resolve(join(args.cwd, 'package-lock.json'));
-    const pkgDeps = getPackageJsonDeps(require(pkgPath));
-    const pkgLockDeps = getPackageLockDeps(require(pkgLockPath));
+    const pkgLockDeps = getPackageLockDeps(readProjectJson(pkgLockPath));
     const globs = nodeModulesGlobs([...new Set([...pkgDeps, ...pkgLockDeps])]);
 
     const paths = await fg(globs);
@@ -86,6 +88,11 @@ export default class Build extends Command {
       `Bundled ${entries.length} files into ${flags.outfile} using ${size}`
     );
   }
+}
+
+function readProjectJson(path: string) {
+  const data = readFileSync(path, 'utf8');
+  return JSON.parse(data);
 }
 
 type Handler = (path: string) => Array<Promise<Entry>>;
