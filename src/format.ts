@@ -15,6 +15,7 @@
  */
 
 import { readFileSync, writeFileSync } from 'fs';
+import { parse } from '@oclif/parser';
 
 /**
  * SIZE is a big-endian uint64
@@ -36,7 +37,11 @@ interface Item {
   bytesRead: number;
 }
 
-export function read(path: string): Entry[] {
+export interface BufMap {
+  [path: string]: Buffer;
+}
+
+export function read(path: string): BufMap {
   const buf = readFileSync(path);
   return parseAll(buf);
 }
@@ -47,21 +52,17 @@ export function write(path: string, entries: Entry[]): void {
   writeFileSync(path, buf);
 }
 
-export function parseAll(buf: Buffer, loc = 0): Entry[] {
-  const results: Entry[] = [];
+export function parseAll(buf: Buffer, loc = 0): BufMap {
+  const res: BufMap = {};
   while (loc < buf.length) {
     const path = parseItem(buf, loc);
     loc += path.bytesRead;
     const contents = parseItem(buf, loc);
     loc += contents.bytesRead;
 
-    results.push({
-      key: path.buf.toString(ENCODING),
-      data: contents.buf,
-    });
+    res[path.buf.toString(ENCODING)] = contents.buf;
   }
-
-  return results;
+  return res;
 }
 
 // NOTE: The returned buffer shares memory with the input buf!

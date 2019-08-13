@@ -16,10 +16,10 @@
 
 import * as Debugger from 'debug';
 import {
+  FileMap,
   NodeModuleResolution,
   Parent as NMRParent,
   registerLoader,
-  FileMap,
 } from 'node-module-resolution';
 import {
   Compiler,
@@ -27,7 +27,7 @@ import {
 } from 'node-module-resolution/build/src/extend-internal-module';
 import * as Path from 'path';
 import { loadCompiledJs } from './bytecode';
-import { read } from './format';
+import { BufMap, read } from './format';
 import { compileJson, makeRequireFunction } from './third_party/from-node';
 
 const debug = Debugger('bulkan:loader');
@@ -39,10 +39,6 @@ export interface Parent extends NMRParent {
   // tslint:enable:no-any
 }
 
-interface BufMap {
-  [path: string]: Buffer;
-}
-
 export function register(archive: string): void {
   const bufMap = loadBuffersFromBundle(archive);
   registerLoader({
@@ -52,10 +48,7 @@ export function register(archive: string): void {
 }
 
 function loadBuffersFromBundle(path: string): BufMap {
-  const entries = read(path);
-  const bufMap: BufMap = {};
-  entries.forEach(({ key, data }) => (bufMap[Path.resolve(key)] = data));
-  return bufMap;
+  return read(path);
 }
 
 function createResolver(bufMap: BufMap): Resolver {
