@@ -78,32 +78,29 @@ describe('format', () => {
       loc += encodeItem(buf, Buffer.from(exPath), loc);
       loc += encodeItem(buf, Buffer.from(exContents), loc);
 
-      const res = parseAll(buf);
-      const ex: BufMap = {};
-      ex[exPath] = Buffer.from(exContents);
-      assert.deepStrictEqual(res, ex);
+      const res = Array.from(parseAll(buf));
+      assert.deepStrictEqual(res, [
+        { key: exPath, data: Buffer.from(exContents) },
+      ]);
     });
 
     it('should parse a buffer with multiple entries', () => {
-      const expected = {
-        'a/path.js': Buffer.from('console.log(5 * "5")'),
-        './another/path.js': Buffer.from('export PI = 3.14;'),
-        'a/directory/': Buffer.alloc(0),
-        './package.json': Buffer.from('{"main": "./indexjs"'),
-      };
+      const expected = [
+        { key: 'a/path.js', data: Buffer.from('console.log(5 * "5")') },
+        { key: './another/path.js', data: Buffer.from('export PI = 3.14;') },
+        { key: 'a/directory/', data: Buffer.alloc(0) },
+        { key: './package.json', data: Buffer.from('{"main": "./indexjs"') },
+      ];
 
       const len =
         8 * hs +
-        Object.entries(expected)
-          .map(([key, data]) => key.length + data.length)
+        expected
+          .map(({ key, data }) => key.length + data.length)
           .reduce((a, b) => a + b);
       const buf = Buffer.alloc(len);
-      encodeAll(
-        buf,
-        Object.entries(expected).map(([key, data]) => ({ key, data }))
-      );
+      encodeAll(buf, expected);
 
-      const res = parseAll(buf);
+      const res = Array.from(parseAll(buf));
       assert.deepStrictEqual(res, expected);
     });
   });

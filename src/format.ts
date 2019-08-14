@@ -41,9 +41,9 @@ export interface BufMap {
   [path: string]: Buffer;
 }
 
-export function read(path: string): BufMap {
+export function* read(path: string): IterableIterator<Entry> {
   const buf = readFileSync(path);
-  return parseAll(buf);
+  yield* parseAll(buf);
 }
 
 export function write(path: string, entries: Entry[]): void {
@@ -52,17 +52,18 @@ export function write(path: string, entries: Entry[]): void {
   writeFileSync(path, buf);
 }
 
-export function parseAll(buf: Buffer, loc = 0): BufMap {
-  const res: BufMap = {};
+export function* parseAll(buf: Buffer, loc = 0): IterableIterator<Entry> {
   while (loc < buf.length) {
     const path = parseItem(buf, loc);
     loc += path.bytesRead;
     const contents = parseItem(buf, loc);
     loc += contents.bytesRead;
 
-    res[path.buf.toString(ENCODING)] = contents.buf;
+    yield {
+      key: path.buf.toString(ENCODING),
+      data: contents.buf,
+    };
   }
-  return res;
 }
 
 // NOTE: The returned buffer shares memory with the input buf!

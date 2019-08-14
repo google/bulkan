@@ -25,7 +25,7 @@ import {
   Compiler,
   Resolver,
 } from 'node-module-resolution/build/src/extend-internal-module';
-import * as Path from 'path';
+import { dirname, resolve } from 'path';
 import { loadCompiledJs } from './bytecode';
 import { BufMap, read } from './format';
 import { compileJson, makeRequireFunction } from './third_party/from-node';
@@ -48,7 +48,11 @@ export function register(archive: string): void {
 }
 
 function loadBuffersFromBundle(path: string): BufMap {
-  return read(path);
+  const bufMap: BufMap = {};
+  for (const { key, data } of read(path)) {
+    bufMap[resolve(key)] = data;
+  }
+  return bufMap;
 }
 
 function createResolver(bufMap: BufMap): Resolver {
@@ -121,7 +125,7 @@ function moduleBoundCompileFromBytecode(
     byteCode
   ).runInThisContext();
 
-  const dirname = Path.dirname(filename);
+  const dir = dirname(filename);
   const require = makeRequireFunction(this);
   const exports = this.exports;
   const thisValue = exports;
@@ -132,7 +136,7 @@ function moduleBoundCompileFromBytecode(
     require,
     module,
     filename,
-    dirname
+    dir
   );
   return result;
 }
