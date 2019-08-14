@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+import * as Debugger from 'debug';
 import {
+  FileMap,
   NodeModuleResolution,
   Parent as NMRParent,
   registerLoader,
@@ -25,26 +27,10 @@ import {
 } from 'node-module-resolution/build/src/extend-internal-module';
 import * as Path from 'path';
 import { loadCompiledJs } from './bytecode';
-import { read } from './format';
+import { BufMap, read } from './format';
 import { compileJson, makeRequireFunction } from './third_party/from-node';
 
-export function register(
-  archive: string,
-  verbose = Boolean(process.env['BLKN_VERBOSE'])
-): void {
-  const bufMap = loadBuffersFromBundle(archive);
-  registerLoader({
-    resolve: createResolver(bufMap, (verbose = verbose)),
-    compile: createCompiler(bufMap, (verbose = verbose)),
-  });
-}
-
-function loadBuffersFromBundle(path: string): BufMap {
-  const entries = read(path);
-  const bufMap: BufMap = {};
-  entries.forEach(({ key, data }) => (bufMap[Path.resolve(key)] = data));
-  return bufMap;
-}
+const debug = Debugger('bulkan:loader');
 
 export interface Parent extends NMRParent {
   // tslint:disable:no-any
@@ -53,29 +39,41 @@ export interface Parent extends NMRParent {
   // tslint:enable:no-any
 }
 
-interface BufMap {
-  [path: string]: Buffer;
+export function register(archive: string): void {
+  const bufMap = loadBuffersFromBundle(archive);
+  registerLoader({
+    resolve: createResolver(bufMap),
+    compile: createCompiler(bufMap),
+  });
 }
 
-function createResolver(bufMap: BufMap, verbose: boolean): Resolver {
+function loadBuffersFromBundle(path: string): BufMap {
+  return read(path);
+}
+
+function createResolver(bufMap: BufMap): Resolver {
   // nmr.resolve handles fallback to default behaviour
   const nmr = createNMR(bufMap);
   return (filename, parent, isMain, resolveContext) => {
     const res = nmr.resolve(filename, parent, isMain);
-    if (verbose) console.log('resolved', filename, 'to', res);
+    debug('resolved', filename, 'to', res);
     return res;
   };
 }
 
 function createNMR(bufMap: BufMap): NodeModuleResolution {
-  return new NodeModuleResolution(
-    new Map(Object.entries(bufMap).map(([k, v]) => [k, { getData: () => v }]))
-  );
+  // Create a light FileMap wrapper around bufMap
+  const fileMap: FileMap = {
+    has: (file: string) => file in bufMap,
+    get: (file: string) => ({ getData: () => bufMap[file] }),
+  };
+
+  return new NodeModuleResolution(fileMap);
 }
 
-function createCompiler(bufMap: BufMap, verbose: boolean): Compiler {
+function createCompiler(bufMap: BufMap): Compiler {
   const compile: Compiler = (module, filename, extension, resolveContext) => {
-    if (verbose) console.log('compiling', filename, 'from bundle');
+    debug('compiling', filename, 'from bundle');
 
     const mod = module as Parent;
     const content = bufMap[filename].toString('utf8');
@@ -84,19 +82,19 @@ function createCompiler(bufMap: BufMap, verbose: boolean): Compiler {
       compileJson(mod, content, filename);
     } else if (extension === '.js') {
       if (!module || !mod._compile) {
-        throw Error(`Unable to compile ${filename} within a module`);
+        throw new Error(`Unable to compile ${filename} within a module`);
       }
 
-      const precompiledPath = filename + '.cjs';
+      const precompiledPath = filename + '.v8b';
       if (precompiledPath in bufMap) {
-        if (verbose) console.log(`\tcompiling from bundled bytecode`);
+        debug(`\tcompiling from bundled bytecode`);
         moduleBoundCompileFromBytecode.bind(mod)(
           bufMap[filename].toString('utf8'),
           filename,
           bufMap[precompiledPath]
         );
       } else {
-        if (verbose) console.log(`\tcompiling from bundled javascript`);
+        debug(`\tcompiling from bundled javascript`);
         mod._compile(content, filename);
       }
     }

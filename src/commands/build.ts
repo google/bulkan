@@ -17,8 +17,8 @@
 import { Command, flags } from '@oclif/command';
 import * as fg from 'fast-glob';
 import * as fileSize from 'filesize';
-import { promises, statSync } from 'fs';
-import * as Path from 'path';
+import { promises as fsPromises, statSync, readFileSync } from 'fs';
+import { extname, join, resolve } from 'path';
 import {
   getPackageJsonDeps,
   getPackageLockDeps,
@@ -57,24 +57,21 @@ export default class Build extends Command {
     if (flags.no_compile) handlers['.js'] = loadBuffer;
 
     this.log('Collecting paths');
-    const pkgPath = Path.resolve(Path.join(args.cwd, 'package.json'));
-    const pkgLockPath = Path.resolve(Path.join(args.cwd, 'package-lock.json'));
-    const pkgDeps = getPackageJsonDeps(require(pkgPath));
-    const pkgLockDeps = getPackageLockDeps(require(pkgLockPath));
+    this.log('Reading package.json');
+    const pkgPath = resolve(join(args.cwd, 'package.json'));
+    const pkgDeps = getPackageJsonDeps(readProjectJson(pkgPath));
+    this.log('Reading package-lock.json');
+    const pkgLockPath = resolve(join(args.cwd, 'package-lock.json'));
+    const pkgLockDeps = getPackageLockDeps(readProjectJson(pkgLockPath));
     const globs = nodeModulesGlobs([...new Set([...pkgDeps, ...pkgLockDeps])]);
 
     const paths = await fg(globs);
     this.log(`Found ${paths.length} paths`);
 
     this.log(`Preparing buffers`);
-    const entryPs = ([] as Array<Promise<Entry>>)
-      .concat(
-        ...paths.map((path: string) => {
-          const ext = Path.extname(path);
-          if (ext in handlers) return handlers[ext](path);
-          return [];
-        })
-      )
+    const entryPs = paths
+      .filter(path => extname(path) in handlers)
+      .flatMap(path => handlers[extname(path)](path))
       .map(e =>
         e.catch(err => {
           this.log(`Failed to load ${err.path}: ${err.msg}`);
@@ -93,11 +90,16 @@ export default class Build extends Command {
   }
 }
 
+function readProjectJson(path: string) {
+  const data = readFileSync(path, 'utf8');
+  return JSON.parse(data);
+}
+
 type Handler = (path: string) => Array<Promise<Entry>>;
 
 const loadBuffer: Handler = path => {
   return [
-    promises
+    fsPromises
       .readFile(path)
       .then(buf => ({ key: path, data: buf }))
       .catch(e => Promise.reject({ path, msg: e })),
@@ -113,14 +115,14 @@ const loadEmptyBuffer: Handler = path => {
 };
 
 const loadBufferAndCompileCache: Handler = path => {
-  const readFile = promises.readFile(path);
+  const readFile = fsPromises.readFile(path);
   return [
     readFile
       .then(buf => ({ key: path, data: buf }))
       .catch(e => Promise.reject({ path, msg: e })),
     readFile
       .then(buf => ({
-        key: path + '.cjs',
+        key: path + '.v8b',
         data: compileJsModule(path, buf.toString('utf8')),
       }))
       .catch(e => Promise.reject({ path, msg: `Couldn't compile js: ${e}` })),
