@@ -3,7 +3,7 @@ const { execSync } = require('child_process');
 
 const makeBench = (dir, { useBulkan = false } = {}) => {
   return () => {
-    execSync(`node ${useBulkan ? '-r bulkan' : ''} ./`, { cwd: dir });
+    execSync(`node ${useBulkan ? '-r bulkan/register' : ''} ./`, { cwd: dir });
   };
 };
 

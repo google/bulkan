@@ -15,4 +15,4 @@
  */
 
 process.env.DEBUG = '*';
-require('../dist/loader').register('bundle.blkn');
+require('../dist/loader').register(process.env['BLKN_BUNDLE'] || 'bundle.blkn');

@@ -14,7 +14,4 @@
  * limitations under the License.
  */
 
-require('../dist/loader').register(
-  process.env['BLKN_BUNDLE'] || 'bundle.blkn',
-  (verbose = false)
-);
+require('../dist/loader').register(process.env['BLKN_BUNDLE'] || 'bundle.blkn');
