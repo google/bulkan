@@ -4,4 +4,5 @@ DISK=$(df ./ | awk 'END{print $1}')
 sync
 echo 3 > /proc/sys/vm/drop_caches
 blockdev --flushbufs $DISK
-hdparm -F $DISK
+# hdparm -F $DISK
+sleep $1
