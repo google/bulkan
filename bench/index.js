@@ -2,7 +2,7 @@ const Benchmark = require('benchmark');
 const { execSync } = require('child_process');
 
 Benchmark.options.minSamples = 10;
-const coldSettleTime = 10
+const coldSettleTime = 10;
 const mb = (dir, { bulkan = false, cold = false } = {}) => {
   if (cold) {
     return () => {
@@ -30,11 +30,13 @@ const bulkanHotLoadSuite = new Benchmark.Suite()
     console.error(`Failure in ${name}`);
     throw error;
   })
-  .on('cycle', ({target: cycle}) => {
+  .on('cycle', ({ target: cycle }) => {
     const period = cycle.times.period;
     const deviation = cycle.stats.deviation;
     const samples = cycle.stats.sample.length;
-    console.log(`${cycle.name} x ${period.toPrecision(4)} s ± ${deviation.toPrecision(4)} (period±stdev) (${samples} samples)`)
+    console.log(`${cycle.name} x \
+${period.toPrecision(4)} s ± ${deviation.toPrecision(4)} (period±stdev) \
+(${samples} samples)`);
   });
 
 pfx = 'ColdLoad';
@@ -52,12 +54,16 @@ const bulkanColdLoadSuite = new Benchmark.Suite()
     console.error(`Failure in ${name}`);
     throw error;
   })
-  .on('cycle', ({target: cycle}) => {
+  .on('cycle', ({ target: cycle }) => {
     const period = cycle.times.period - coldSettleTime;
     const deviation = cycle.stats.deviation;
     const samples = cycle.stats.sample.length;
-    console.log(`${cycle.name} x ${period.toPrecision(4)} s ± ${deviation.toPrecision(4)} (period±stdev) (${samples} samples)`)
+    console.log(`${cycle.name} x \
+${period.toPrecision(4)} s ± ${deviation.toPrecision(4)} (period±stdev) \
+(${samples} samples)`);
   });
 
+console.log(`minSamples: ${Benchmark.options.minSamples} \
+purge-settle-time: ${coldSettleTime} s`);
 bulkanColdLoadSuite.run();
 bulkanHotLoadSuite.run();
