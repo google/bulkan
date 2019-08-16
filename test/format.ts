@@ -16,6 +16,7 @@
 
 import * as assert from 'assert';
 import {
+  BufMap,
   encodeAll,
   encodedLength,
   encodeItem,
@@ -77,9 +78,10 @@ describe('format', () => {
       loc += encodeItem(buf, Buffer.from(exPath), loc);
       loc += encodeItem(buf, Buffer.from(exContents), loc);
 
-      const res = parseAll(buf);
-      assert.strictEqual(res[0].key, exPath);
-      assert.strictEqual(res[0].data.toString(enc), exContents);
+      const res = Array.from(parseAll(buf));
+      assert.deepStrictEqual(res, [
+        { key: exPath, data: Buffer.from(exContents) },
+      ]);
     });
 
     it('should parse a buffer with multiple entries', () => {
@@ -98,7 +100,7 @@ describe('format', () => {
       const buf = Buffer.alloc(len);
       encodeAll(buf, expected);
 
-      const res = parseAll(buf);
+      const res = Array.from(parseAll(buf));
       assert.deepStrictEqual(res, expected);
     });
   });
